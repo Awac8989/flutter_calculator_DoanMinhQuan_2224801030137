@@ -42,5 +42,4 @@ flutter pub get      # Tải các thư viện cần thiết
 flutter run          # Chạy ứng dụng trên thiết bị/giả lập đã kết nối
 📸 Ảnh Chụp Màn Hình (Screenshots)
 ( )
-
-[Thêm ảnh chụp màn hình ứng dụng của bạn tại đây]
+<img width="1626" height="1013" alt="Screenshot 2025-11-21 172054" src="https://github.com/user-attachments/assets/bcfca9cb-e714-4bfa-9cfe-7d249aa95ec0" />
