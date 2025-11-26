@@ -1,4 +1,4 @@
-Ứngg Dụng Máy Tính Di Động Đơn Giản (Simple Mobile Calculator)
+<img width="372" height="806" alt="Screenshot 2025-11-26 102900" src="https://github.com/user-attachments/assets/a5e361d1-b210-4ec0-a699-876579f37bab" />Ứngg Dụng Máy Tính Di Động Đơn Giản (Simple Mobile Calculator)
 Tác giả: Đoàn Minh Quân MSSV: 2224801030137
  Giới Thiệu
 Đây là dự án LAB 2 và LAB 3 nhằm xây dựng một ứng dụng máy tính chức năng (Functional Calculator App) sử dụng Flutter.
@@ -18,6 +18,7 @@ flutter pub get      # Tải các thư viện cần thiết
 flutter run          # Chạy ứng dụng trên thiết bị/giả lập đã kết nối
 📸 Ảnh Chụp Màn Hình (Screenshots)
 ( )
-<img width="1626" height="1013" alt="Screenshot 2025-11-21 172054" src="https://github.com/user-attachments/assets/bcfca9cb-e714-4bfa-9cfe-7d249aa95ec0" />
-<img width="442" height="827" alt="image" src="https://github.com/user-attachments/assets/367f35eb-b7a8-4da2-a28f-6ae5df96f7ac" />
-<img width="458" height="844" alt="image" src="https://github.com/user-attachments/assets/5b6608ce-488e-4126-9e00-e58a936802b0" />
+<img width="372" height="806" alt="Screenshot 2025-11-26 102900" src="https://github.com/user-attachments/assets/23fffe8e-8b71-455d-bc9f-b7e96d10d745" />
+<img width="373" height="806" alt="Screenshot 2025-11-26 102910" src="https://github.com/user-attachments/assets/7f022bfe-d54f-4662-8bf6-83a87f6a6481" />
+<img width="361" height="803" alt="Screenshot 2025-11-26 102916" src="https://github.com/user-attachments/assets/a1314807-5b5e-4595-b364-1c78ff3e918f" />
+<img width="369" height="819" alt="Screenshot 2025-11-26 102930" src="https://github.com/user-attachments/assets/e84a8cd7-8a51-43f9-aa07-9a518fd55ed4" />
