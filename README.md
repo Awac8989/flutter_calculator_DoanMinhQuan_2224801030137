@@ -16,7 +16,7 @@ cd flutter_calculator_DoanMinhQuan_2224801030137
 Bash
 flutter pub get      # Tải các thư viện cần thiết
 flutter run          # Chạy ứng dụng trên thiết bị/giả lập đã kết nối
-📸 Ảnh Chụp Màn Hình (Screenshots)
+Ảnh Chụp Màn Hình \
 ( )
 <img width="372" height="806" alt="Screenshot 2025-11-26 102900" src="https://github.com/user-attachments/assets/23fffe8e-8b71-455d-bc9f-b7e96d10d745" />
 <img width="373" height="806" alt="Screenshot 2025-11-26 102910" src="https://github.com/user-attachments/assets/7f022bfe-d54f-4662-8bf6-83a87f6a6481" />
