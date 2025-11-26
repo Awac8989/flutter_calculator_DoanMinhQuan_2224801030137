@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/calculation_history.dart';
+import '../models/saved_calculation.dart';
 import '../models/calculator_settings.dart';
 import '../utils/constants.dart';
 
@@ -109,6 +110,41 @@ class StorageService {
   // Load current mode
   static String loadCurrentMode() {
     return prefs.getString(StorageKeys.currentMode) ?? 'basic';
+  }
+
+  // ===== SAVED CALCULATIONS =====
+  
+  // Save saved calculations
+  static Future<void> saveSavedCalculations(List<SavedCalculation> calculations) async {
+    try {
+      final List<Map<String, dynamic>> jsonList = 
+          calculations.map((calc) => calc.toJson()).toList();
+      final String jsonString = jsonEncode(jsonList);
+      await prefs.setString(StorageKeys.savedCalculations, jsonString);
+    } catch (e) {
+      print('Error saving saved calculations: $e');
+    }
+  }
+  
+  // Load saved calculations
+  static List<SavedCalculation> loadSavedCalculations() {
+    try {
+      final String? jsonString = prefs.getString(StorageKeys.savedCalculations);
+      if (jsonString == null) return [];
+      
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+      return jsonList
+          .map((json) => SavedCalculation.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error loading saved calculations: $e');
+      return [];
+    }
+  }
+  
+  // Clear saved calculations
+  static Future<void> clearSavedCalculations() async {
+    await prefs.remove(StorageKeys.savedCalculations);
   }
 
   // ===== UTILITY METHODS =====

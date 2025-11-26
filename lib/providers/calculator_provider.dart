@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/calculator_mode.dart';
 import '../models/calculation_history.dart';
+import '../models/saved_calculation.dart';
 import '../models/calculator_settings.dart';
 import '../services/storage_service.dart';
 import 'dart:math' as math;
@@ -16,6 +17,7 @@ class CalculatorProvider extends ChangeNotifier {
   CalculatorMode _currentMode = CalculatorMode.basic;
   double _memoryValue = 0.0;
   List<CalculationHistory> _history = [];
+  List<SavedCalculation> _savedCalculations = [];
   CalculatorSettings _settings = const CalculatorSettings();
   bool _hasError = false;
   String _errorMessage = '';
@@ -47,6 +49,7 @@ class CalculatorProvider extends ChangeNotifier {
   CalculatorMode get currentMode => _currentMode;
   double get memoryValue => _memoryValue;
   List<CalculationHistory> get history => List.unmodifiable(_history);
+  List<SavedCalculation> get savedCalculations => List.unmodifiable(_savedCalculations);
   CalculatorSettings get settings => _settings;
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
@@ -57,6 +60,7 @@ class CalculatorProvider extends ChangeNotifier {
       await StorageService.init();
       _settings = StorageService.loadSettings();
       _history = StorageService.loadHistory();
+      _savedCalculations = StorageService.loadSavedCalculations();
       _memoryValue = StorageService.loadMemoryValue();
       notifyListeners();
     } catch (e) {
@@ -435,6 +439,99 @@ class CalculatorProvider extends ChangeNotifier {
     _waitingForOperand = false;
     _clearError();
     notifyListeners();
+  }
+
+  // ===== SAVED CALCULATIONS =====
+  
+  Future<void> saveCurrentCalculation(String name, {String? description, String? category}) async {
+    if (_display == '0' || _display.isEmpty) return;
+    
+    // Create proper expression for saving
+    String expressionToSave;
+    if (_lastExpression.isNotEmpty) {
+      // Remove the "= result" part from last expression
+      expressionToSave = _lastExpression.split(' = ').first;
+    } else if (_operation.isNotEmpty && _previousNumber.isNotEmpty) {
+      // Current operation in progress
+      expressionToSave = '$_previousNumber $_operation $_display';
+    } else {
+      // Just the current display value
+      expressionToSave = _display;
+    }
+    
+    final calculation = SavedCalculation(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      expression: expressionToSave,
+      result: _display,
+      createdAt: DateTime.now(),
+      lastUsed: DateTime.now(),
+      description: description,
+      category: category ?? 'General',
+    );
+    
+    _savedCalculations.add(calculation);
+    await StorageService.saveSavedCalculations(_savedCalculations);
+    notifyListeners();
+  }
+  
+  Future<void> saveCalculationFromHistory(CalculationHistory history, String name, {String? description}) async {
+    final calculation = SavedCalculation.fromHistory(history, name, description: description);
+    _savedCalculations.add(calculation);
+    await StorageService.saveSavedCalculations(_savedCalculations);
+    notifyListeners();
+  }
+  
+  Future<void> loadSavedCalculation(SavedCalculation calculation) async {
+    // Update last used time
+    final updatedCalculation = calculation.copyWith(lastUsed: DateTime.now());
+    final index = _savedCalculations.indexWhere((c) => c.id == calculation.id);
+    if (index >= 0) {
+      _savedCalculations[index] = updatedCalculation;
+      await StorageService.saveSavedCalculations(_savedCalculations);
+    }
+    
+    // Load the calculation into display
+    _display = calculation.result;
+    _lastExpression = calculation.expression;
+    _previousNumber = '';
+    _operation = '';
+    _waitingForOperand = true;
+    notifyListeners();
+  }
+  
+  Future<void> deleteSavedCalculation(String id) async {
+    _savedCalculations.removeWhere((c) => c.id == id);
+    await StorageService.saveSavedCalculations(_savedCalculations);
+    notifyListeners();
+  }
+
+  Future<void> updateSavedCalculation(SavedCalculation updatedCalculation) async {
+    final index = _savedCalculations.indexWhere((c) => c.id == updatedCalculation.id);
+    if (index >= 0) {
+      _savedCalculations[index] = updatedCalculation;
+      await StorageService.saveSavedCalculations(_savedCalculations);
+      notifyListeners();
+    }
+  }
+  
+  Future<void> toggleCalculationFavorite(String id) async {
+    final index = _savedCalculations.indexWhere((c) => c.id == id);
+    if (index >= 0) {
+      _savedCalculations[index] = _savedCalculations[index].copyWith(
+        isFavorite: !_savedCalculations[index].isFavorite,
+      );
+      await StorageService.saveSavedCalculations(_savedCalculations);
+      notifyListeners();
+    }
+  }
+  
+  List<SavedCalculation> getSavedCalculationsByCategory(String category) {
+    return _savedCalculations.where((c) => c.category == category).toList();
+  }
+  
+  List<SavedCalculation> getFavoriteCalculations() {
+    return _savedCalculations.where((c) => c.isFavorite).toList();
   }
 
   // ===== GESTURE HANDLING =====

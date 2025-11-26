@@ -7,6 +7,7 @@ import '../models/calculator_settings.dart' as calc_settings;
 import '../widgets/display_area.dart';
 import '../widgets/button_grid.dart';
 import '../widgets/mode_selector.dart';
+import '../widgets/saved_calculations_view.dart';
 import '../utils/constants.dart';
 
 class CalculatorScreen extends StatefulWidget {
@@ -34,6 +35,59 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         
         return Scaffold(
           backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+          appBar: AppBar(
+            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            elevation: 0,
+            title: Text(
+              'Calculator',
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.bookmark,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                tooltip: 'Saved Calculations',
+                onPressed: () => _showSavedCalculations(context),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.history,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                tooltip: 'History',
+                onPressed: () => _showHistoryDialog(context),
+              ),
+              PopupMenuButton(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings),
+                        SizedBox(width: 8),
+                        Text('Settings'),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'settings') {
+                    _showSettingsDialog(context);
+                  }
+                },
+              ),
+            ],
+          ),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -79,82 +133,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Calculator',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Row(
-            children: [
-              // History button
-              Consumer<CalculatorProvider>(
-                builder: (context, calculator, child) {
-                  final hasHistory = calculator.history.isNotEmpty;
-                  return IconButton(
-                    icon: Badge(
-                      isLabelVisible: hasHistory,
-                      child: const Icon(Icons.history),
-                    ),
-                    onPressed: () => _showHistoryDialog(context),
-                    tooltip: 'History',
-                  );
-                },
-              ),
-              
-              // Memory indicator
-              Consumer<CalculatorProvider>(
-                builder: (context, calculator, child) {
-                  return IconButton(
-                    icon: Badge(
-                      isLabelVisible: calculator.hasMemory,
-                      child: const Icon(Icons.memory),
-                    ),
-                    onPressed: () => calculator.memoryRecall(),
-                    tooltip: 'Memory Recall',
-                  );
-                },
-              ),
-              
-              // Settings button
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showSettingsDialog(context),
-                tooltip: 'Settings',
-              ),
-              
-              // Theme toggle
-              Consumer<ThemeProvider>(
-                builder: (context, themeProvider, child) {
-                  return IconButton(
-                    icon: Icon(
-                      themeProvider.isDarkMode 
-                          ? Icons.light_mode 
-                          : Icons.dark_mode,
-                    ),
-                    onPressed: () {
-                      final newMode = themeProvider.isDarkMode 
-                          ? calc_settings.ThemeMode.light 
-                          : calc_settings.ThemeMode.dark;
-                      themeProvider.updateThemeMode(newMode);
-                    },
-                    tooltip: 'Toggle Theme',
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -249,6 +227,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             child: const Text('Close'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSavedCalculations(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SavedCalculationsView(),
       ),
     );
   }

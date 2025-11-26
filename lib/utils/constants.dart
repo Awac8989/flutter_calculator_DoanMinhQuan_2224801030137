@@ -133,6 +133,7 @@ class StorageKeys {
   static const String calculatorSettings = 'calculator_settings';
   static const String memoryValue = 'memory_value';
   static const String currentMode = 'current_mode';
+  static const String savedCalculations = 'saved_calculations';
 }
 
 class AppIcons {
