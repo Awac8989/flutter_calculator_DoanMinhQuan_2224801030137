@@ -48,7 +48,7 @@ dependencies:
   intl: ^0.18.1
   
   # Voice input and file operations
-  speech_to_text: ^6.6.2
+  speech_to_text: 7.3.0
   permission_handler: ^11.3.1
   path_provider: ^2.1.2
   csv: ^5.1.1

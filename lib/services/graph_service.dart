@@ -1,5 +1,6 @@
 // services/graph_service.dart
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../utils/expression_parser.dart';
 import '../models/calculator_settings.dart';

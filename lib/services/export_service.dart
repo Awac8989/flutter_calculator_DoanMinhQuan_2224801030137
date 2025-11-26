@@ -61,7 +61,7 @@ class ExportService {
           calc.description ?? '',
           calc.category ?? '',
           dateFormat.format(calc.createdAt),
-          dateFormat.format(calc.modifiedAt),
+          dateFormat.format(calc.lastUsed),
           calc.isFavorite ? 'Yes' : 'No'
         ]);
       }
@@ -285,7 +285,7 @@ class ExportService {
                       style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                     ),
                     pw.Text(
-                      'Modified: ${dateFormat.format(calc.modifiedAt)}',
+                      'Last Used: ${dateFormat.format(calc.lastUsed)}',
                       style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                     ),
                   ],

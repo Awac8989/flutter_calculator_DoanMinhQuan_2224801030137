@@ -55,9 +55,11 @@ class VoiceInputService {
         },
         listenFor: timeout,
         pauseFor: const Duration(seconds: 2),
-        partialResults: false,
+        listenOptions: SpeechListenOptions(
+          partialResults: false,
+          listenMode: ListenMode.confirmation,
+        ),
         localeId: 'en_US',
-        listenMode: ListenMode.confirmation,
       );
     }
   }
