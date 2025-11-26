@@ -1,4 +1,4 @@
-<img width="372" height="806" alt="Screenshot 2025-11-26 102900" src="https://github.com/user-attachments/assets/a5e361d1-b210-4ec0-a699-876579f37bab" />Ứngg Dụng Máy Tính Di Động Đơn Giản (Simple Mobile Calculator)
+ />Ứngg Dụng Máy Tính Di Động Đơn Giản (Simple Mobile Calculator)
 Tác giả: Đoàn Minh Quân MSSV: 2224801030137
  Giới Thiệu
 Đây là dự án LAB 2 và LAB 3 nhằm xây dựng một ứng dụng máy tính chức năng (Functional Calculator App) sử dụng Flutter.
