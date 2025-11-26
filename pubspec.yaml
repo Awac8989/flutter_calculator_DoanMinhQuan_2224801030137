@@ -46,6 +46,16 @@ dependencies:
   
   # Internationalization
   intl: ^0.18.1
+  
+  # Voice input and file operations
+  speech_to_text: ^6.6.2
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.2
+  csv: ^5.1.1
+  pdf: ^3.10.7
+  
+  # Graph plotting
+  fl_chart: ^0.66.2
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +63,8 @@ dev_dependencies:
   
   # Testing
   mockito: ^5.4.4
+  test: ^1.24.9
+  build_runner: ^2.4.7
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

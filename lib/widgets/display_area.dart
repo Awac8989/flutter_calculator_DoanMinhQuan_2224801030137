@@ -371,6 +371,8 @@ class _DisplayAreaState extends State<DisplayArea>
         return AppColors.basicModeAccent;
       case CalculatorMode.scientific:
         return AppColors.scientificModeAccent;
+      case CalculatorMode.programmer:
+        return AppColors.lightAccent; // Use a default color for now
     }
   }
 

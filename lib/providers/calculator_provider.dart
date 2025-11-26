@@ -4,7 +4,9 @@ import '../models/calculator_mode.dart';
 import '../models/calculation_history.dart';
 import '../models/saved_calculation.dart';
 import '../models/calculator_settings.dart';
+import '../models/number_base.dart';
 import '../services/storage_service.dart';
+import '../utils/expression_parser.dart';
 import 'dart:math' as math;
 
 class CalculatorProvider extends ChangeNotifier {
@@ -21,6 +23,11 @@ class CalculatorProvider extends ChangeNotifier {
   CalculatorSettings _settings = const CalculatorSettings();
   bool _hasError = false;
   String _errorMessage = '';
+  
+  // Programmer mode specific state
+  NumberBase _currentNumberBase = NumberBase.decimal;
+  int _integerDisplay = 0;
+  bool _isProgrammerMode = false;
 
   // Getters
   String get display => _display;
@@ -54,6 +61,25 @@ class CalculatorProvider extends ChangeNotifier {
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
   bool get hasMemory => _memoryValue != 0.0;
+  
+  // Programmer mode getters
+  NumberBase get currentNumberBase => _currentNumberBase;
+  int get integerDisplay => _integerDisplay;
+  bool get isProgrammerMode => _currentMode == CalculatorMode.programmer;
+  
+  String get displayInCurrentBase {
+    if (_currentMode == CalculatorMode.programmer) {
+      return NumberBaseConverter.convertToBase(_integerDisplay, _currentNumberBase);
+    }
+    return _display;
+  }
+  
+  Map<NumberBase, String> get allBaseRepresentations {
+    if (_currentMode == CalculatorMode.programmer) {
+      return NumberBaseConverter.convertToAllBases(_integerDisplay);
+    }
+    return {};
+  }
 
   Future<void> initialize() async {
     try {
@@ -78,6 +104,35 @@ class CalculatorProvider extends ChangeNotifier {
       _lastExpression = '';
     }
     
+    // Handle programmer mode input
+    if (_currentMode == CalculatorMode.programmer) {
+      // Check if the number is valid for current base
+      if (!_isValidForBase(number, _currentNumberBase)) {
+        return;
+      }
+      
+      if (_waitingForOperand) {
+        _display = number;
+        _waitingForOperand = false;
+      } else {
+        if (_display == '0') {
+          _display = number;
+        } else {
+          _display += number;
+        }
+      }
+      
+      try {
+        _integerDisplay = NumberBaseConverter.convertFromBase(_display, _currentNumberBase);
+      } catch (e) {
+        _setError('Invalid input for ${_currentNumberBase.displayName}');
+        return;
+      }
+      
+      notifyListeners();
+      return;
+    }
+    
     // If there's a pending scientific function, continue building the number inside it
     if (_currentFunction.isNotEmpty && !_waitingForOperand) {
       // Continue building the number inside the function
@@ -98,6 +153,19 @@ class CalculatorProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+  
+  bool _isValidForBase(String digit, NumberBase base) {
+    switch (base) {
+      case NumberBase.binary:
+        return '01'.contains(digit);
+      case NumberBase.octal:
+        return '01234567'.contains(digit);
+      case NumberBase.decimal:
+        return '0123456789'.contains(digit);
+      case NumberBase.hexadecimal:
+        return '0123456789ABCDEFabcdef'.contains(digit);
+    }
   }
 
   void inputDecimal() {
@@ -144,20 +212,96 @@ class CalculatorProvider extends ChangeNotifier {
       _currentFunction = '';
     }
     
+    if (_currentMode == CalculatorMode.programmer) {
+      _calculateProgrammerMode();
+      return;
+    }
+    
     if (_operation.isNotEmpty && !_waitingForOperand) {
-      final result = _performCalculation();
-      if (result != null) {
+      try {
+        // Try using expression parser first for complex expressions
         final expression = '$_previousNumber $_operation $_display';
-        _addToHistory(expression, _formatResult(result));
+        final result = ExpressionParser.evaluate(expression, angleMode: _settings.angleMode);
         
-        _lastExpression = '$expression = ${_formatResult(result)}';
-        _display = _formatResult(result);
-        _previousNumber = '';
-        _operation = '';
-        _waitingForOperand = true;
+        if (result.isFinite) {
+          _addToHistory(expression, _formatResult(result));
+          _lastExpression = '$expression = ${_formatResult(result)}';
+          _display = _formatResult(result);
+          _previousNumber = '';
+          _operation = '';
+          _waitingForOperand = true;
+        } else {
+          _showError('Math Error');
+        }
+      } catch (e) {
+        // Fallback to basic calculation if parser fails
+        final result = _performCalculation();
+        if (result != null) {
+          final expression = '$_previousNumber $_operation $_display';
+          _addToHistory(expression, _formatResult(result));
+          
+          _lastExpression = '$expression = ${_formatResult(result)}';
+          _display = _formatResult(result);
+          _previousNumber = '';
+          _operation = '';
+          _waitingForOperand = true;
+        }
       }
     }
     notifyListeners();
+  }
+  
+  void _calculateProgrammerMode() {
+    if (_operation.isEmpty || _waitingForOperand) return;
+    
+    try {
+      final prevValue = int.tryParse(_previousNumber) ?? 0;
+      final currentValue = NumberBaseConverter.convertFromBase(_display, _currentNumberBase);
+      
+      int result;
+      switch (_operation) {
+        case '+':
+          result = prevValue + currentValue;
+          break;
+        case '-':
+        case '−':
+          result = prevValue - currentValue;
+          break;
+        case '*':
+        case '×':
+          result = prevValue * currentValue;
+          break;
+        case '/':
+        case '÷':
+          if (currentValue == 0) {
+            _showError('Cannot divide by zero');
+            return;
+          }
+          result = prevValue ~/ currentValue; // Integer division
+          break;
+        case '%':
+          if (currentValue == 0) {
+            _showError('Cannot divide by zero');
+            return;
+          }
+          result = prevValue % currentValue;
+          break;
+        default:
+          return;
+      }
+      
+      _integerDisplay = result;
+      _display = NumberBaseConverter.convertToBase(result, _currentNumberBase);
+      
+      final expression = '$_previousNumber $_operation ${NumberBaseConverter.convertToBase(currentValue, _currentNumberBase)}';
+      _addToHistory(expression, _display);
+      _lastExpression = '$expression = $_display';
+      
+      _clearOperation();
+      _waitingForOperand = true;
+    } catch (e) {
+      _showError('Invalid operation');
+    }
   }
 
   double? _performCalculation() {
@@ -373,16 +517,150 @@ class CalculatorProvider extends ChangeNotifier {
     StorageService.clearMemory();
     notifyListeners();
   }
+  
+  void memoryStore() {
+    final value = double.tryParse(_display) ?? 0;
+    _memoryValue = value;
+    StorageService.saveMemoryValue(_memoryValue);
+    notifyListeners();
+  }
+  
+  void inputConstant(String constantName) {
+    double value;
+    switch (constantName.toLowerCase()) {
+      case 'pi':
+      case 'π':
+        value = 3.141592653589793;
+        break;
+      case 'e':
+        value = 2.718281828459045;
+        break;
+      default:
+        return;
+    }
+    
+    _display = _formatResult(value);
+    _waitingForOperand = true;
+    notifyListeners();
+  }
+  
+  void loadFromHistory(CalculationHistory historyItem) {
+    _display = historyItem.result;
+    _waitingForOperand = true;
+    _lastExpression = historyItem.expression + ' = ' + historyItem.result;
+    notifyListeners();
+  }
 
   // ===== MODE SWITCHING =====
   
   void changeMode(CalculatorMode mode) {
     _currentMode = mode;
+    if (mode == CalculatorMode.programmer) {
+      _isProgrammerMode = true;
+      _integerDisplay = int.tryParse(_display.replaceAll(',', '')) ?? 0;
+      _currentNumberBase = NumberBase.decimal;
+    } else {
+      _isProgrammerMode = false;
+    }
     clear();
     notifyListeners();
   }
 
   void switchMode(CalculatorMode mode) => changeMode(mode);
+
+  // ===== PROGRAMMER MODE METHODS =====
+  
+  void switchNumberBase(NumberBase base) {
+    if (_currentMode != CalculatorMode.programmer) return;
+    
+    _currentNumberBase = base;
+    _display = NumberBaseConverter.convertToBase(_integerDisplay, base);
+    notifyListeners();
+  }
+  
+  void inputHexDigit(String digit) {
+    if (_currentMode != CalculatorMode.programmer || 
+        _currentNumberBase != NumberBase.hexadecimal) return;
+    
+    if (_hasError) _clearError();
+    
+    if (_waitingForOperand) {
+      _display = digit;
+      _waitingForOperand = false;
+    } else {
+      _display += digit;
+    }
+    
+    try {
+      _integerDisplay = NumberBaseConverter.convertFromBase(_display, _currentNumberBase);
+    } catch (e) {
+      _setError('Invalid hex input');
+    }
+    
+    notifyListeners();
+  }
+  
+  void performBitwiseOperation(String operation) {
+    if (_currentMode != CalculatorMode.programmer) return;
+    
+    try {
+      int currentValue = NumberBaseConverter.convertFromBase(_display, _currentNumberBase);
+      
+      int result;
+      switch (operation) {
+        case 'AND':
+          if (_previousNumber.isNotEmpty) {
+            int prevValue = int.tryParse(_previousNumber) ?? 0;
+            result = prevValue & currentValue;
+          } else {
+            return;
+          }
+          break;
+        case 'OR':
+          if (_previousNumber.isNotEmpty) {
+            int prevValue = int.tryParse(_previousNumber) ?? 0;
+            result = prevValue | currentValue;
+          } else {
+            return;
+          }
+          break;
+        case 'XOR':
+          if (_previousNumber.isNotEmpty) {
+            int prevValue = int.tryParse(_previousNumber) ?? 0;
+            result = prevValue ^ currentValue;
+          } else {
+            return;
+          }
+          break;
+        case 'NOT':
+          result = ~currentValue;
+          break;
+        case 'LSH': // Left shift
+          result = currentValue << 1;
+          break;
+        case 'RSH': // Right shift
+          result = currentValue >> 1;
+          break;
+        default:
+          return;
+      }
+      
+      _integerDisplay = result;
+      _display = NumberBaseConverter.convertToBase(result, _currentNumberBase);
+      
+      if (operation != 'NOT' && operation != 'LSH' && operation != 'RSH') {
+        final expression = '$_previousNumber $operation $_display';
+        _addToHistory(expression, _display);
+        _lastExpression = expression;
+      }
+      
+      _clearOperation();
+    } catch (e) {
+      _setError('Invalid operation');
+    }
+    
+    notifyListeners();
+  }
 
   // ===== HISTORY MANAGEMENT =====
   
@@ -428,6 +706,16 @@ class CalculatorProvider extends ChangeNotifier {
   void _clearError() {
     _hasError = false;
     _errorMessage = '';
+  }
+  
+  void _setError(String message) {
+    _showError(message);
+  }
+  
+  void _clearOperation() {
+    _previousNumber = '';
+    _operation = '';
+    _waitingForOperand = false;
   }
 
   void allClear() {

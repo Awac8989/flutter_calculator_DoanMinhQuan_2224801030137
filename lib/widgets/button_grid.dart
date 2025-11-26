@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/calculator_mode.dart';
+import '../models/number_base.dart';
 import '../providers/calculator_provider.dart';
 import '../providers/theme_provider.dart';
 import '../utils/constants.dart';
@@ -38,6 +39,8 @@ class ButtonGrid extends StatelessWidget {
         return _buildBasicGrid(context, calculator);
       case CalculatorMode.scientific:
         return _buildScientificGrid(context, calculator);
+      case CalculatorMode.programmer:
+        return _buildProgrammerGrid(context, calculator);
     }
   }
 
@@ -198,6 +201,101 @@ class ButtonGrid extends StatelessWidget {
         ),
       ),
     ];
+  }
+
+  Widget _buildProgrammerGrid(BuildContext context, CalculatorProvider calculator) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        // Number base selector row
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('BIN', () => calculator.switchNumberBase(NumberBase.binary), ButtonType.function)),
+              Expanded(child: _buildButton('OCT', () => calculator.switchNumberBase(NumberBase.octal), ButtonType.function)),
+              Expanded(child: _buildButton('DEC', () => calculator.switchNumberBase(NumberBase.decimal), ButtonType.function)),
+              Expanded(child: _buildButton('HEX', () => calculator.switchNumberBase(NumberBase.hexadecimal), ButtonType.function)),
+            ],
+          ),
+        ),
+        // Bitwise operations row
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('AND', () => calculator.performBitwiseOperation('AND'), ButtonType.operator)),
+              Expanded(child: _buildButton('OR', () => calculator.performBitwiseOperation('OR'), ButtonType.operator)),
+              Expanded(child: _buildButton('XOR', () => calculator.performBitwiseOperation('XOR'), ButtonType.operator)),
+              Expanded(child: _buildButton('NOT', () => calculator.performBitwiseOperation('NOT'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        // Hex digits A-F + shift operations
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('A', () => calculator.inputHexDigit('A'), ButtonType.number)),
+              Expanded(child: _buildButton('B', () => calculator.inputHexDigit('B'), ButtonType.number)),
+              Expanded(child: _buildButton('C', () => calculator.inputHexDigit('C'), ButtonType.number)),
+              Expanded(child: _buildButton('LSH', () => calculator.performBitwiseOperation('LSH'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('D', () => calculator.inputHexDigit('D'), ButtonType.number)),
+              Expanded(child: _buildButton('E', () => calculator.inputHexDigit('E'), ButtonType.number)),
+              Expanded(child: _buildButton('F', () => calculator.inputHexDigit('F'), ButtonType.number)),
+              Expanded(child: _buildButton('RSH', () => calculator.performBitwiseOperation('RSH'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        // Numbers 7-9 + division
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('7', () => calculator.inputNumber('7'), ButtonType.number)),
+              Expanded(child: _buildButton('8', () => calculator.inputNumber('8'), ButtonType.number)),
+              Expanded(child: _buildButton('9', () => calculator.inputNumber('9'), ButtonType.number)),
+              Expanded(child: _buildButton('÷', () => calculator.inputOperation('/'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        // Numbers 4-6 + multiplication
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('4', () => calculator.inputNumber('4'), ButtonType.number)),
+              Expanded(child: _buildButton('5', () => calculator.inputNumber('5'), ButtonType.number)),
+              Expanded(child: _buildButton('6', () => calculator.inputNumber('6'), ButtonType.number)),
+              Expanded(child: _buildButton('×', () => calculator.inputOperation('*'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        // Numbers 1-3 + subtraction
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('1', () => calculator.inputNumber('1'), ButtonType.number)),
+              Expanded(child: _buildButton('2', () => calculator.inputNumber('2'), ButtonType.number)),
+              Expanded(child: _buildButton('3', () => calculator.inputNumber('3'), ButtonType.number)),
+              Expanded(child: _buildButton('-', () => calculator.inputOperation('-'), ButtonType.operator)),
+            ],
+          ),
+        ),
+        // 0, clear, and equals + addition
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildButton('0', () => calculator.inputNumber('0'), ButtonType.number)),
+              Expanded(child: _buildButton('C', () => calculator.clear(), ButtonType.clear)),
+              Expanded(child: _buildButton('=', () => calculator.calculate(), ButtonType.equals)),
+              Expanded(child: _buildButton('+', () => calculator.inputOperation('+'), ButtonType.operator)),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildButton(String text, VoidCallback onPressed, ButtonType type) {

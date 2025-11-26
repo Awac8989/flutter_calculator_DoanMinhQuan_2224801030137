@@ -178,6 +178,8 @@ class _ModeSelectorState extends State<ModeSelector>
         return AppColors.basicModeAccent;
       case CalculatorMode.scientific:
         return AppColors.scientificModeAccent;
+      case CalculatorMode.programmer:
+        return AppColors.lightAccent;
     }
   }
 }

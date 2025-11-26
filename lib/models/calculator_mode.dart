@@ -2,6 +2,7 @@
 enum CalculatorMode {
   basic,
   scientific,
+  programmer,
 }
 
 extension CalculatorModeExtension on CalculatorMode {
@@ -11,6 +12,8 @@ extension CalculatorModeExtension on CalculatorMode {
         return 'Basic';
       case CalculatorMode.scientific:
         return 'Scientific';
+      case CalculatorMode.programmer:
+        return 'Programmer';
     }
   }
 
@@ -20,6 +23,8 @@ extension CalculatorModeExtension on CalculatorMode {
         return '🔢';
       case CalculatorMode.scientific:
         return '🔬';
+      case CalculatorMode.programmer:
+        return '💻';
     }
   }
 }
